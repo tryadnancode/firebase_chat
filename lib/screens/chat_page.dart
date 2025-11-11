@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../services/auth/auth_services.dart';
 import '../services/chat/chat_services.dart';
@@ -71,6 +72,93 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     }
   }
 
+  void _showEditDeleteMenu(
+      BuildContext context, String messageId, String currentMessage) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('Edit'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _editMessage(context, messageId, currentMessage);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete),
+                title: const Text('Delete'),
+                onTap: () {
+                  Navigator.pop(context);
+                  deleteMessage(messageId);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _editMessage(
+      BuildContext context, String messageId, String currentMessage) {
+    TextEditingController editController =
+        TextEditingController(text: currentMessage);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Edit Message"),
+        content: CommonTextField(
+          controller: editController,
+          hintText: "Edit your message",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              if (editController.text.trim().isNotEmpty) {
+                _chatServices.updateMessage(_authServices.currentUser!.uid,
+                    widget.receiverId, messageId, editController.text.trim());
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void deleteMessage(String messageId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Message"),
+        content: const Text("Are you sure you want to delete this message?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              _chatServices.deleteMessage(
+                  _authServices.currentUser!.uid, widget.receiverId, messageId);
+              Navigator.pop(context);
+            },
+            child: const Text("Delete"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,38 +210,55 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
         ? Theme.of(context).colorScheme.primary
         : Theme.of(context).colorScheme.secondary;
     var alignment =
-        isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start;
+        isCurrentUser ? Alignment.centerRight : Alignment.centerLeft;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-      child: Row(
-        mainAxisAlignment: alignment,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            margin: EdgeInsets.only(
-                left: isCurrentUser ? 50 : 0, right: isCurrentUser ? 0 : 50),
-            decoration: BoxDecoration(
-              color: bubbleColor,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              data['message'],
-              style: TextStyle(
-                  fontSize: 16,
-                  color: isCurrentUser
-                      ? Theme.of(context).colorScheme.onPrimary
-                      : Theme.of(context).colorScheme.onSecondary),
-            ),
+    return GestureDetector(
+      onLongPress: () {
+        if (isCurrentUser) {
+          _showEditDeleteMenu(context, doc.id, data['message']);
+        }
+      },
+      child: Container(
+        alignment: alignment,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+          child: Column(
+            crossAxisAlignment:
+                isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                margin: EdgeInsets.only(
+                    left: isCurrentUser ? 50 : 0, right: isCurrentUser ? 0 : 50),
+                decoration: BoxDecoration(
+                  color: bubbleColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  data['message'],
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: isCurrentUser
+                          ? Theme.of(context).colorScheme.onPrimary
+                          : Theme.of(context).colorScheme.onSecondary),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                DateFormat('hh:mm a')
+                    .format((data['timestamp'] as Timestamp).toDate()),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildUserInput(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 50.0,top: 8),
+      padding: const EdgeInsets.only(bottom: 50.0, top: 8, left: 8, right: 8),
       child: Row(
         children: [
           Expanded(
