@@ -5,6 +5,7 @@ class CommonTextField extends StatefulWidget {
   final TextEditingController? controller;
   final String? hintText;
   final TextInputType? keyboardType;
+  final FocusNode? focusNode;
 
   const CommonTextField({
     super.key,
@@ -12,6 +13,7 @@ class CommonTextField extends StatefulWidget {
     this.controller,
     this.hintText,
     this.keyboardType,
+    this.focusNode
   });
 
   @override
@@ -37,6 +39,7 @@ class _CommonTextFieldState extends State<CommonTextField> {
   Widget build(BuildContext context) {
     return TextField(
       controller: widget.controller,
+      focusNode: widget.focusNode,
       keyboardType: widget.keyboardType,
       obscureText: widget.isPassword ? _obscureText : false,
       style: TextStyle(color: Theme.of(context).colorScheme.onBackground),
