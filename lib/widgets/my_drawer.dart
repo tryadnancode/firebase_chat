@@ -12,6 +12,7 @@ class MyDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = AuthServices().currentUser;
     return Drawer(
       backgroundColor: Theme.of(context).colorScheme.background,
       child: Column(
@@ -20,12 +21,27 @@ class MyDrawer extends StatelessWidget {
           Column(
             children: [
               DrawerHeader(
-                  child: Center(
-                      child: Icon(
-                Icons.message,
-                color: Theme.of(context).colorScheme.primary,
-                size: 40,
-              ))),
+                  child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child: Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    currentUser?.email ?? 'Not logged in',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ],
+              )),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ListTile(
