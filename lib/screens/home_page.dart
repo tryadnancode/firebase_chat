@@ -36,10 +36,10 @@ class HomePage extends StatelessWidget {
       stream: _chatServices.getChatRooms(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Text("Error");
+          return Center(child: const Text("Error"));
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          return Center(child: Text("Loading...."));
         }
         return ListView(
           children: snapshot.data!
